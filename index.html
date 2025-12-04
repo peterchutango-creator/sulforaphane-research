@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sulforaphane Research Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      color: #222;
+    }
+    header {
+      background: #0f766e;
+      color: white;
+      padding: 1.2rem 1.5rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    header p {
+      margin: 0.3rem 0 0;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    main {
+      max-width: 960px;
+      margin: 1.5rem auto;
+      padding: 0 1rem 2rem;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+    .controls input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+    }
+    .controls select {
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+    }
+    .stats {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 1rem 1rem 0.8rem;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      align-items: baseline;
+      margin-bottom: 0.5rem;
+    }
+    .title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .pubdate {
+      font-size: 0.8rem;
+      color: #666;
+      white-space: nowrap;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: #ecfeff;
+      color: #0f766e;
+      border: 1px solid #a5f3fc;
+      margin-left: 0.3rem;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #777;
+      margin-top: 0.4rem;
+      margin-bottom: 0.2rem;
+    }
+    .abstract-en,
+    .abstract-zh {
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 0.4rem;
+    }
+    .links {
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+      margin-bottom: 0.2rem;
+    }
+    .links a {
+      color: #0f766e;
+      text-decoration: none;
+    }
+    .links a:hover {
+      text-decoration: underline;
+    }
+    .error {
+      color: #b91c1c;
+      font-size: 0.9rem;
+      margin-bottom: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sulforaphane Research Tracker</h1>
+    <p>Latest PubMed articles about sulforaphane — auto-fetched & summarized.</p>
+  </header>
+  <main>
+    <div class="controls">
+      <input id="search" type="text" placeholder="Filter by keyword in title or abstract..." />
+      <select id="sort">
+        <option value="date_desc">Newest first</option>
+        <option value="date_asc">Oldest first</option>
+      </select>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="error" id="error"></div>
+    <div id="list"></div>
+  </main>
+
+  <script>
+    const DATA_URL = "./data/research.json";
+
+    const listEl = document.getElementById("list");
+    const statsEl = document.getElementById("stats");
+    const errorEl = document.getElementById("error");
+    const searchEl = document.getElementById("search");
+    const sortEl = document.getElementById("sort");
+
+    let allItems = [];
+    let filteredItems = [];
+
+    async function loadData() {
+      try {
+        const res = await fetch(DATA_URL + "?t=" + Date.now()); // 避免 cache
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        allItems = Array.isArray(data) ? data : [];
+        // 依 pub_date 排序（預設新到舊）
+        allItems.sort((a, b) => (b.pub_date || "").localeCompare(a.pub_date || ""));
+        filteredItems = allItems.slice();
+        render();
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = "Failed to load data/research.json. Please check if the file exists and is valid JSON.";
+      }
+    }
+
+    function applyFilters() {
+      const q = (searchEl.value || "").toLowerCase();
+      const sortMode = sortEl.value;
+
+      filteredItems = allItems.filter(item => {
+        const title = (item.title_en || "").toLowerCase();
+        const absEn = (item.abstract_simplified_en || item.abstract_en || "").toLowerCase();
+        const absZh = (item.abstract_zh_tw || "").toLowerCase();
+        return !q || title.includes(q) || absEn.includes(q) || absZh.includes(q);
+      });
+
+      if (sortMode === "date_desc") {
+        filteredItems.sort((a, b) => (b.pub_date || "").localeCompare(a.pub_date || ""));
+      } else {
+        filteredItems.sort((a, b) => (a.pub_date || "").localeCompare(b.pub_date || ""));
+      }
+
+      render();
+    }
+
+    function render() {
+      listEl.innerHTML = "";
+      statsEl.textContent = `${filteredItems.length} of ${allItems.length} articles shown`;
+
+      filteredItems.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const header = document.createElement("div");
+        header.className = "card-header";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "title";
+        titleEl.textContent = item.title_en || "(No title)";
+
+        const pubdateEl = document.createElement("div");
+        pubdateEl.className = "pubdate";
+        pubdateEl.textContent = item.pub_date || "Unknown date";
+
+        header.appendChild(titleEl);
+        header.appendChild(pubdateEl);
+        card.appendChild(header);
+
+        const badgeRow = document.createElement("div");
+        badgeRow.innerHTML = `<span class="badge">PMID: ${item.id || "?"}</span>`;
+        card.appendChild(badgeRow);
+
+        const labelEn = document.createElement("div");
+        labelEn.className = "section-label";
+        labelEn.textContent = "Simplified English abstract";
+        card.appendChild(labelEn);
+
+        const absEn = document.createElement("div");
+        absEn.className = "abstract-en";
+        absEn.textContent = item.abstract_simplified_en || item.abstract_en || "(No abstract)";
+        card.appendChild(absEn);
+
+        const labelZh = document.createElement("div");
+        labelZh.className = "section-label";
+        labelZh.textContent = "繁體中文摘要";
+        card.appendChild(labelZh);
+
+        const absZh = document.createElement("div");
+        absZh.className = "abstract-zh";
+        absZh.textContent = item.abstract_zh_tw || "（尚未提供翻譯）";
+        card.appendChild(absZh);
+
+        const links = document.createElement("div");
+        links.className = "links";
+        if (item.pubmed_url) {
+          links.innerHTML = `<a href="${item.pubmed_url}" target="_blank" rel="noopener noreferrer">View on PubMed</a>`;
+        }
+        card.appendChild(links);
+
+        listEl.appendChild(card);
+      });
+    }
+
+    searchEl.addEventListener("input", applyFilters);
+    sortEl.addEventListener("change", applyFilters);
+
+    loadData();
+  </script>
+</body>
+</html>
