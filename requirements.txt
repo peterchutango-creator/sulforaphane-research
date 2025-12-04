@@ -1,5 +1,4 @@
 requests
 biopython
-googletrans==4.0.0-rc1
-wsgiref  # Added to provide missing cgi functionality for Python 3.12+ compatibility
+deep-translator  # 替換 googletrans
 
