@@ -1,257 +1,167 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>Sulforaphane Research Tracker</title>
+  <title>蘿蔔硫素研究資料庫｜Sulforaphane Research Explorer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      background: #f5f5f5;
-      color: #222;
+      background: #f4f4f4;
+      padding-bottom: 40px;
     }
+
     header {
       background: #0f766e;
       color: white;
-      padding: 1.2rem 1.5rem;
+      padding: 20px;
+      text-align: center;
     }
-    header h1 {
+
+    h1 {
       margin: 0;
-      font-size: 1.4rem;
+      font-size: 28px;
     }
-    header p {
-      margin: 0.3rem 0 0;
-      font-size: 0.9rem;
-      opacity: 0.9;
+
+    #searchBox {
+      width: 80%;
+      max-width: 500px;
+      display: block;
+      margin: 20px auto;
+      padding: 12px;
+      font-size: 16px;
     }
-    main {
-      max-width: 960px;
-      margin: 1.5rem auto;
-      padding: 0 1rem 2rem;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      align-items: center;
-    }
-    .controls input {
-      flex: 1;
-      min-width: 200px;
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 0.9rem;
-    }
-    .controls select {
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 0.9rem;
-    }
-    .stats {
-      font-size: 0.85rem;
-      color: #555;
-      margin-bottom: 0.5rem;
-    }
-    .card {
+
+    .paper-card {
       background: white;
-      border-radius: 10px;
-      padding: 1rem 1rem 0.8rem;
-      margin-bottom: 0.8rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin: 20px auto;
+      max-width: 900px;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.5rem;
-      align-items: baseline;
-      margin-bottom: 0.5rem;
+
+    .pub-date {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 10px;
     }
-    .title {
-      font-size: 1rem;
-      font-weight: 600;
+
+    .toggle-btn {
+      background: #0f766e;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 14px;
     }
-    .pubdate {
-      font-size: 0.8rem;
-      color: #666;
-      white-space: nowrap;
+
+    .abstract-box {
+      margin-top: 10px;
+      padding: 12px;
+      background: #f9f9f9;
+      border-left: 4px solid #0f766e;
+      display: none;
+      border-radius: 6px;
+      white-space: pre-wrap;
     }
-    .badge {
+
+    .kid-box {
+      margin-top: 10px;
+      padding: 12px;
+      background: #fff9e5;
+      border-left: 4px solid #f59e0b;
+      display: none;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+
+    .pubmed-link {
+      margin-top: 12px;
       display: inline-block;
-      font-size: 0.7rem;
-      padding: 0.1rem 0.4rem;
-      border-radius: 999px;
-      background: #ecfeff;
       color: #0f766e;
-      border: 1px solid #a5f3fc;
-      margin-left: 0.3rem;
-    }
-    .section-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #777;
-      margin-top: 0.4rem;
-      margin-bottom: 0.2rem;
-    }
-    .abstract-en,
-    .abstract-zh {
-      font-size: 0.85rem;
-      line-height: 1.4;
-      margin-bottom: 0.4rem;
-    }
-    .links {
-      font-size: 0.8rem;
-      margin-top: 0.3rem;
-      margin-bottom: 0.2rem;
-    }
-    .links a {
-      color: #0f766e;
-      text-decoration: none;
-    }
-    .links a:hover {
       text-decoration: underline;
-    }
-    .error {
-      color: #b91c1c;
-      font-size: 0.9rem;
-      margin-bottom: 0.8rem;
+      font-weight: bold;
     }
   </style>
 </head>
+
 <body>
-  <header>
-    <h1>Sulforaphane Research Tracker</h1>
-    <p>Latest PubMed articles about sulforaphane — auto-fetched & summarized.</p>
-  </header>
-  <main>
-    <div class="controls">
-      <input id="search" type="text" placeholder="Filter by keyword in title or abstract..." />
-      <select id="sort">
-        <option value="date_desc">Newest first</option>
-        <option value="date_asc">Oldest first</option>
-      </select>
-    </div>
-    <div class="stats" id="stats"></div>
-    <div class="error" id="error"></div>
-    <div id="list"></div>
-  </main>
 
-  <script>
-    const DATA_URL = "./data/research.json";
+<header>
+  <h1>蘿蔔硫素研究資料庫</h1>
+  <p>自動蒐集 PubMed 最新研究（包含完整中文摘要 + 10 歲版解釋）</p>
+</header>
 
-    const listEl = document.getElementById("list");
-    const statsEl = document.getElementById("stats");
-    const errorEl = document.getElementById("error");
-    const searchEl = document.getElementById("search");
-    const sortEl = document.getElementById("sort");
+<input id="searchBox" type="text" placeholder="搜尋研究文章（可輸入中英文）..." />
 
-    let allItems = [];
-    let filteredItems = [];
+<div id="results"></div>
 
-    async function loadData() {
-      try {
-        const res = await fetch(DATA_URL + "?t=" + Date.now()); // 避免 cache
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        allItems = Array.isArray(data) ? data : [];
-        // 依 pub_date 排序（預設新到舊）
-        allItems.sort((a, b) => (b.pub_date || "").localeCompare(a.pub_date || ""));
-        filteredItems = allItems.slice();
-        render();
-      } catch (err) {
-        console.error(err);
-        errorEl.textContent = "Failed to load data/research.json. Please check if the file exists and is valid JSON.";
-      }
+<script>
+  const DATA_URL = "./data/research.json";
+  let papers = [];
+
+  async function loadData() {
+    try {
+      const res = await fetch(DATA_URL);
+      papers = await res.json();
+      render(papers);
+    } catch (err) {
+      document.getElementById("results").innerHTML = "<p>無法讀取資料。</p>";
     }
+  }
 
-    function applyFilters() {
-      const q = (searchEl.value || "").toLowerCase();
-      const sortMode = sortEl.value;
+  function render(list) {
+    const container = document.getElementById("results");
+    container.innerHTML = "";
 
-      filteredItems = allItems.filter(item => {
-        const title = (item.title_en || "").toLowerCase();
-        const absEn = (item.abstract_simplified_en || item.abstract_en || "").toLowerCase();
-        const absZh = (item.abstract_zh_tw || "").toLowerCase();
-        return !q || title.includes(q) || absEn.includes(q) || absZh.includes(q);
-      });
+    list.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "paper-card";
 
-      if (sortMode === "date_desc") {
-        filteredItems.sort((a, b) => (b.pub_date || "").localeCompare(a.pub_date || ""));
-      } else {
-        filteredItems.sort((a, b) => (a.pub_date || "").localeCompare(b.pub_date || ""));
-      }
+      card.innerHTML = `
+        <h2>${p.title_en}</h2>
+        <div class="pub-date">📅 發布日期：${p.pub_date}</div>
 
-      render();
-    }
+        <button class="toggle-btn" onclick="toggleAbstract('${p.id}')">📖 展開 / 收合：完整摘要</button>
+        <div id="abs-${p.id}" class="abstract-box">${p.abstract_zh_tw}</div>
 
-    function render() {
-      listEl.innerHTML = "";
-      statsEl.textContent = `${filteredItems.length} of ${allItems.length} articles shown`;
+        <button class="toggle-btn" onclick="toggleKid('${p.id}')">🧒 展開 / 收合：10 歲版本</button>
+        <div id="kid-${p.id}" class="kid-box">${p.abstract_zh_tw_kid}</div>
 
-      filteredItems.forEach(item => {
-        const card = document.createElement("article");
-        card.className = "card";
+        <a href="${p.pubmed_url}" target="_blank" class="pubmed-link">前往 PubMed 原文</a>
+      `;
 
-        const header = document.createElement("div");
-        header.className = "card-header";
+      container.appendChild(card);
+    });
+  }
 
-        const titleEl = document.createElement("div");
-        titleEl.className = "title";
-        titleEl.textContent = item.title_en || "(No title)";
+  function toggleAbstract(id) {
+    const box = document.getElementById("abs-" + id);
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
 
-        const pubdateEl = document.createElement("div");
-        pubdateEl.className = "pubdate";
-        pubdateEl.textContent = item.pub_date || "Unknown date";
+  function toggleKid(id) {
+    const box = document.getElementById("kid-" + id);
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
 
-        header.appendChild(titleEl);
-        header.appendChild(pubdateEl);
-        card.appendChild(header);
+  document.getElementById("searchBox").addEventListener("input", function () {
+    const q = this.value.toLowerCase();
+    const filtered = papers.filter(p =>
+      p.title_en.toLowerCase().includes(q) ||
+      p.abstract_zh_tw.toLowerCase().includes(q) ||
+      p.abstract_zh_tw_kid.toLowerCase().includes(q)
+    );
+    render(filtered);
+  });
 
-        const badgeRow = document.createElement("div");
-        badgeRow.innerHTML = `<span class="badge">PMID: ${item.id || "?"}</span>`;
-        card.appendChild(badgeRow);
+  loadData();
+</script>
 
-        const labelEn = document.createElement("div");
-        labelEn.className = "section-label";
-        labelEn.textContent = "Simplified English abstract";
-        card.appendChild(labelEn);
-
-        const absEn = document.createElement("div");
-        absEn.className = "abstract-en";
-        absEn.textContent = item.abstract_simplified_en || item.abstract_en || "(No abstract)";
-        card.appendChild(absEn);
-
-        const labelZh = document.createElement("div");
-        labelZh.className = "section-label";
-        labelZh.textContent = "繁體中文摘要";
-        card.appendChild(labelZh);
-
-        const absZh = document.createElement("div");
-        absZh.className = "abstract-zh";
-        absZh.textContent = item.abstract_zh_tw || "（尚未提供翻譯）";
-        card.appendChild(absZh);
-
-        const links = document.createElement("div");
-        links.className = "links";
-        if (item.pubmed_url) {
-          links.innerHTML = `<a href="${item.pubmed_url}" target="_blank" rel="noopener noreferrer">View on PubMed</a>`;
-        }
-        card.appendChild(links);
-
-        listEl.appendChild(card);
-      });
-    }
-
-    searchEl.addEventListener("input", applyFilters);
-    sortEl.addEventListener("change", applyFilters);
-
-    loadData();
-  </script>
 </body>
 </html>
