@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "title_en": "Example Research 1: Sulforaphane's effect on cellular stress.",
+    "abstract_en": "The English abstract placeholder.",
+    "abstract_simplified_en": "This is a simple explanation of the research.",
+    "abstract_zh_tw": "這是研究的簡體中文翻譯。",
+    "pub_date": "2024-01-01",
+    "pubmed_url": "https://pubmed.ncbi.nlm.nih.gov/..."
+  },
+  {
+    "id": "2",
+    "title_en": "Example Research 2: Dosage and bioavailability studies.",
+    "abstract_en": "The English abstract placeholder.",
+    "abstract_simplified_en": "A second example of simple research summary.",
+    "abstract_zh_tw": "這是第二個研究的簡體中文翻譯。",
+    "pub_date": "2024-02-01",
+    "pubmed_url": "https://pubmed.ncbi.nlm.nih.gov/..."
+  }
+]

@@ -1,0 +1,33 @@
+{{ define "main" }}
+<main>
+    <div class="pa3 pa4-ns w-100 w-70-ns mw9 center">
+        <h1 class="f2 f1-ns lh-title mv0">Latest Sulforaphane Research</h1>
+        <p class="f5 f4-ns measure lh-copy">
+            Automatically updated research findings, summarized and translated.
+        </p>
+
+        {{ $allResearch := .Site.Data.research }}
+        {{ $paginator := .Paginate $allResearch 10 }}
+
+        <div class="cf ph2-ns">
+            {{ range $paginator.Pages }}
+            <article class="fl w-100 pa2 pt3 pb3 mb3 bb b--light-gray">
+                <h2 class="f3 mb1 dark-blue">{{ .title_en }}</h2>
+                <p class="f6 gray mb2">Published: {{ .pub_date }} | <a href="{{ .pubmed_url }}" target="_blank" class="link blue hover-dark-blue">View on PubMed</a></p>
+
+                <h3 class="f5 mt3 mb1">Simplified Summary (English)</h3>
+                <p class="measure lh-copy f5">{{ .abstract_simplified_en }}</p>
+
+                <h3 class="f5 mt3 mb1">研究摘要 (中文)</h3>
+                <p class="measure lh-copy f5">{{ .abstract_zh_tw }}</p>
+            </article>
+            {{ end }}
+        </div>
+
+        <div class="pa3">
+            {{ template "_internal/pagination.html" . }}
+        </div>
+
+    </div>
+</main>
+{{ end }}
