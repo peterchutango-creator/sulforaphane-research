@@ -1,4 +1,4 @@
 requests
 biopython
 deep-translator  # 替換 googletrans
-
+ 
