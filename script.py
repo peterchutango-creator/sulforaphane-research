@@ -1,6 +1,6 @@
 import json
 from Bio import Entrez
-# 替換 googletrans，使用 deep-translator
+# 替換 googletrans，使用 deep-translator 
 from deep_translator import GoogleTranslator
 
 # --- Configuration ---
