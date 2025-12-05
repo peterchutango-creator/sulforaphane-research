@@ -53,17 +53,21 @@ def explain_abstract_zh(abstract_en: str) -> str:
         # 發生錯誤時，至少保留英文摘要
         return f"（說明生成失敗，以下為原始英文摘要）\n{abstract_en}"
 
-
 def fetch_pubmed_data():
-    """查詢 PubMed，取得最新 MAX_RESULTS 篇的標題與完整摘要（英文）。"""
+    """
+    查詢 PubMed，取得最新 MAX_RESULTS 篇「標題包含 sulforaphane」且「有摘要」的論文。
+    為確保一定能湊滿 10 篇：一次先抓 50 篇再過濾。
+    """
     print(f"Searching PubMed for: '{SEARCH_TERM}'...")
 
-    # 1. 搜尋 IDs（已依發表日期排序）
+    # 一次取多一點，避免遇到沒有摘要的文章不夠數
+    FETCH_MAX = 50  
+
     try:
         handle = Entrez.esearch(
             db="pubmed",
             term=SEARCH_TERM,
-            retmax=MAX_RESULTS,
+            retmax=FETCH_MAX,     # 抓 50 篇（而不是 10）
             sort="pub date",
         )
         record = Entrez.read(handle)
@@ -77,7 +81,7 @@ def fetch_pubmed_data():
         print("No articles found.")
         return []
 
-    # 2. 取得詳細資訊（XML 格式）
+    # 取得詳細資料
     try:
         handle = Entrez.efetch(db="pubmed", id=id_list, retmode="xml")
         records = Entrez.read(handle)
@@ -94,20 +98,24 @@ def fetch_pubmed_data():
             article_data = medline_citation["Article"]
 
             pmid = str(medline_citation["PMID"])
-            title_en = str(article_data["ArticleTitle"])
+            title_en = str(article_data["ArticleTitle"]).strip()
 
-            # --- 摘要（英文，完整） ---
+            # ❗ 標題必須包含 sulforaphane（雙重確保）
+            if "sulforaphane" not in title_en.lower():
+                continue
+
+            # --- 摘要 ---
             abstract_list = article_data.get("Abstract", {}).get("AbstractText", [])
             if isinstance(abstract_list, list):
                 abstract_en = " ".join([str(t) for t in abstract_list])
             else:
                 abstract_en = str(abstract_list)
 
+            # ❗ 沒摘要的文章不收
             if not abstract_en.strip():
-                # 沒有摘要就跳過
                 continue
 
-            # --- 出版日期（簡化處理） ---
+            # --- 發表日期 ---
             pub_date_data = article_data["Journal"]["JournalIssue"]["PubDate"]
             year = pub_date_data.get("Year", "Unknown")
             month = pub_date_data.get("Month", pub_date_data.get("MedlineDate", "Unknown"))
@@ -125,7 +133,10 @@ def fetch_pubmed_data():
             print(f"Skipping one article due to parsing error: {e}")
             continue
 
-    print(f"Fetched {len(papers)} articles from PubMed.")
+    # 最後只留下最新的 10 篇
+    papers = papers[:MAX_RESULTS]
+
+    print(f"Fetched {len(papers)} valid articles from PubMed.")
     return papers
 
 
