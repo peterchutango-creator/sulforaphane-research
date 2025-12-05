@@ -6,7 +6,7 @@ from openai import OpenAI
 # --- Configuration ---
 EMAIL = "peter.chu.tango@gmail.com"   # NCBI 要求的 email
 SEARCH_TERM = '"sulforaphane"[Title]'
-MAX_RESULTS = 10                      # ✅ 只抓最新 10 篇
+MAX_RESULTS = 20                      # ✅ 只抓最新 20 篇
 OUTPUT_FILE = "data/research.json"
 
 # --- Services ---
@@ -16,13 +16,13 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def explain_abstract_zh(abstract_en: str) -> str:
     """
-    使用 OpenAI 將完整英文 abstract，改寫成一般人可以懂的中文解釋。
+    使用 OpenAI 將完整英文 abstract，改寫成高中生可以懂的中文解釋。
     語氣：清楚、生活化、但保持科學精神，不要講幹話。
     """
     prompt = f"""
 你是一位擅長用淺顯中文解釋醫學與營養研究的科普寫作者。
 
-請閱讀下面這段英文學術摘要，然後用「一般成年讀者看得懂的繁體中文」做成解說：
+請閱讀下面這段英文學術摘要，然後用「一般高中生讀者看得懂的繁體中文」做成解說：
 
 要求：
 1. 不要逐句翻譯，而是「用自己的話」整理重點。
@@ -56,7 +56,7 @@ def explain_abstract_zh(abstract_en: str) -> str:
 def fetch_pubmed_data():
     """
     查詢 PubMed，取得最新 MAX_RESULTS 篇「標題包含 sulforaphane」且「有摘要」的論文。
-    為確保一定能湊滿 10 篇：一次先抓 50 篇再過濾。
+    為確保一定能湊滿 20 篇：一次先抓 50 篇再過濾。
     """
     print(f"Searching PubMed for: '{SEARCH_TERM}'...")
 
@@ -133,7 +133,7 @@ def fetch_pubmed_data():
             print(f"Skipping one article due to parsing error: {e}")
             continue
 
-    # 最後只留下最新的 10 篇
+    # 最後只留下最新的 20 篇
     papers = papers[:MAX_RESULTS]
 
     print(f"Fetched {len(papers)} valid articles from PubMed.")
