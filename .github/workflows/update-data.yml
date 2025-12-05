@@ -34,6 +34,8 @@ jobs:
       # 4. Run the Data Acquisition and Processing script
       - name: Run data acquisition script
         run: python script.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       # 5. Commit and Push new data
       - name: Commit and Push new data
