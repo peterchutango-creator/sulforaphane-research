@@ -22,7 +22,13 @@
 
     h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 26px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      opacity: 0.9;
     }
 
     #searchBox {
@@ -30,63 +36,127 @@
       max-width: 500px;
       display: block;
       margin: 20px auto;
-      padding: 12px;
-      font-size: 16px;
+      padding: 10px 12px;
+      font-size: 15px;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      outline: none;
+    }
+
+    #searchBox:focus {
+      border-color: #0f766e;
+      box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+    }
+
+    #results {
+      max-width: 960px;
+      margin: 0 auto;
     }
 
     .paper-card {
       background: white;
-      margin: 20px auto;
-      max-width: 900px;
-      padding: 20px;
+      margin: 16px 12px;
+      padding: 18px 20px;
       border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .paper-card h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
     }
 
     .pub-date {
       color: #555;
-      font-size: 14px;
-      margin-bottom: 10px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .tags-row {
+      margin: 4px 0 10px;
+      font-size: 13px;
+      color: #1f2933;
+    }
+
+    .tag-pill {
+      display: inline-block;
+      background: #e0f2f1;
+      color: #065f46;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+
+    .buttons-row {
+      margin-top: 8px;
+      margin-bottom: 4px;
     }
 
     .toggle-btn {
       background: #0f766e;
       color: white;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border: none;
-      border-radius: 6px;
+      border-radius: 999px;
       cursor: pointer;
-      margin-top: 10px;
       margin-right: 8px;
-      font-size: 14px;
+      font-size: 13px;
     }
 
-    .abstract-box {
-      margin-top: 10px;
-      padding: 12px;
-      background: #f9f9f9;
-      border-left: 4px solid #0f766e;
-      display: none;
-      border-radius: 6px;
-      white-space: pre-wrap;
+    .toggle-btn:hover {
+      opacity: 0.9;
     }
 
+    .abstract-box,
     .explain-box {
-      margin-top: 10px;
-      padding: 12px;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* 中文解說：預設展開 */
+    .explain-box {
       background: #fff9e5;
       border-left: 4px solid #f59e0b;
+    }
+
+    /* 英文摘要：預設收合，由 JS 控制 */
+    .abstract-box {
+      background: #f9fafb;
+      border-left: 4px solid #0f766e;
       display: none;
-      border-radius: 6px;
-      white-space: pre-wrap;
     }
 
     .pubmed-link {
-      margin-top: 12px;
+      margin-top: 10px;
       display: inline-block;
       color: #0f766e;
       text-decoration: underline;
-      font-weight: bold;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .empty-message {
+      text-align: center;
+      margin-top: 40px;
+      color: #555;
+      font-size: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .paper-card {
+        margin: 12px 8px;
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
     }
   </style>
 </head>
@@ -95,10 +165,10 @@
 
 <header>
   <h1>蘿蔔硫素研究資料庫</h1>
-  <p>自動蒐集 PubMed 最新 10 篇研究（完整英文摘要 + 中文白話解說）</p>
+  <p>PubMed 最新 20 篇蘿蔔硫素相關研究：中文白話解說＋類別標註＋英文摘要</p>
 </header>
 
-<input id="searchBox" type="text" placeholder="搜尋研究文章（可輸入中英文）..." />
+<input id="searchBox" type="text" placeholder="搜尋研究（標題 / 英文摘要 / 中文解說，支援中英文）..." />
 
 <div id="results"></div>
 
@@ -107,35 +177,96 @@
   let papers = [];
 
   async function loadData() {
+    const container = document.getElementById("results");
+
     try {
       const res = await fetch(DATA_URL);
+      if (!res.ok) {
+        throw new Error("HTTP " + res.status);
+      }
       papers = await res.json();
+
+      if (!Array.isArray(papers) || papers.length === 0) {
+        container.innerHTML = '<p class="empty-message">目前沒有找到任何研究資料。</p>';
+        return;
+      }
+
       render(papers);
     } catch (err) {
-      document.getElementById("results").innerHTML = "<p>無法讀取資料。</p>";
-      console.error(err);
+      console.error("載入 research.json 失敗：", err);
+      container.innerHTML = '<p class="empty-message">無法讀取資料。請確認 data/research.json 是否存在，或稍後再試。</p>';
     }
+  }
+
+  function buildTags(p) {
+    const tags = [];
+
+    if (p.is_human_study) tags.push("人類研究");
+    if (p.is_animal_study) tags.push("動物研究");
+
+    if (p.is_disease_related) {
+      const d = (p.disease_name || "").trim();
+      if (d) {
+        tags.push("疾病相關：" + d);
+      } else {
+        tags.push("疾病相關（未註明疾病名稱）");
+      }
+    }
+
+    if (p.is_clinical_trial) tags.push("clinical trial");
+    if (p.is_nutrition_metabolism) tags.push("nutrition / metabolism");
+
+    return tags;
   }
 
   function render(list) {
     const container = document.getElementById("results");
     container.innerHTML = "";
 
+    if (!list || list.length === 0) {
+      container.innerHTML = '<p class="empty-message">找不到符合搜尋條件的研究。</p>';
+      return;
+    }
+
     list.forEach(p => {
       const card = document.createElement("div");
       card.className = "paper-card";
 
+      const safeId = (p.id || "").toString().replace(/[^a-zA-Z0-9_-]/g, "");
+      const absId = "abs-" + safeId;
+
+      const tags = buildTags(p);
+      const tagsHtml = tags.length
+        ? tags.map(t => `<span class="tag-pill">${t}</span>`).join("")
+        : '<span style="font-size:13px;color:#6b7280;">尚未標註類別</span>';
+
       card.innerHTML = `
-        <h2>${p.title_en}</h2>
-        <div class="pub-date">📅 發布日期：${p.pub_date}</div>
+        <h2>${p.title_en || "(No title)"}</h2>
+        <div class="pub-date">📅 發布日期：${p.pub_date || "Unknown"}</div>
 
-        <button class="toggle-btn" onclick="toggleBox('abs-${p.id}')">📖 展開 / 收合：英文摘要</button>
-        <button class="toggle-btn" onclick="toggleBox('exp-${p.id}')">🧾 展開 / 收合：中文解說</button>
+        <div class="tags-row">
+          ${tagsHtml}
+        </div>
 
-        <div id="abs-${p.id}" class="abstract-box">${p.abstract_en}</div>
-        <div id="exp-${p.id}" class="explain-box">${p.explanation_zh}</div>
+        <!-- 中文白話解說：預設展開 -->
+        <div class="explain-box">
+          <strong>中文白話解說：</strong><br>
+          ${p.explanation_zh || "尚無中文解說。"}
+        </div>
 
-        <a href="${p.pubmed_url}" target="_blank" class="pubmed-link">前往 PubMed 原文</a>
+        <!-- 英文摘要：用按鈕收合 -->
+        <div class="buttons-row">
+          <button class="toggle-btn" onclick="toggleBox('${absId}')">
+            📖 展開 / 收合 英文摘要
+          </button>
+        </div>
+
+        <div id="${absId}" class="abstract-box">
+          <strong>英文摘要：</strong><br>
+          ${p.abstract_en || "No abstract available."}
+        </div>
+
+        <a href="${p.pubmed_url || "#"}" target="_blank" class="pubmed-link">前往 PubMed 原文</a>
       `;
 
       container.appendChild(card);
@@ -145,16 +276,24 @@
   function toggleBox(id) {
     const box = document.getElementById(id);
     if (!box) return;
-    box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+    box.style.display =
+      box.style.display === "none" || box.style.display === "" ? "block" : "none";
   }
 
   document.getElementById("searchBox").addEventListener("input", function () {
-    const q = this.value.toLowerCase();
-    const filtered = papers.filter(p =>
-      (p.title_en || "").toLowerCase().includes(q) ||
-      (p.abstract_en || "").toLowerCase().includes(q) ||
-      (p.explanation_zh || "").toLowerCase().includes(q)
-    );
+    const q = this.value.toLowerCase().trim();
+    if (!q) {
+      render(papers);
+      return;
+    }
+
+    const filtered = papers.filter(p => {
+      const title = (p.title_en || "").toLowerCase();
+      const abs = (p.abstract_en || "").toLowerCase();
+      const explZh = (p.explanation_zh || "").toLowerCase();
+      return title.includes(q) || abs.includes(q) || explZh.includes(q);
+    });
+
     render(filtered);
   });
 
@@ -163,3 +302,4 @@
 
 </body>
 </html>
+
