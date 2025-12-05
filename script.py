@@ -5,7 +5,7 @@ from openai import OpenAI
 
 # --- Configuration ---
 EMAIL = "peter.chu.tango@gmail.com"   # NCBI 要求的 email
-SEARCH_TERM = "Sulforaphane"
+SEARCH_TERM = '"sulforaphane"[Title]'
 MAX_RESULTS = 10                      # ✅ 只抓最新 10 篇
 OUTPUT_FILE = "data/research.json"
 
