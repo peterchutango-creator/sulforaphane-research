@@ -1,57 +1,71 @@
+import os
 import json
 from Bio import Entrez
-from deep_translator import GoogleTranslator
+from openai import OpenAI
 
 # --- Configuration ---
-EMAIL = "peter.chu.tango@gmail.com"
+EMAIL = "peter.chu.tango@gmail.com"   # NCBI 要求的 email
 SEARCH_TERM = "Sulforaphane"
-MAX_RESULTS = 50
+MAX_RESULTS = 10                      # ✅ 只抓最新 10 篇
 OUTPUT_FILE = "data/research.json"
 
 # --- Services ---
 Entrez.email = EMAIL
-translator = GoogleTranslator(source="en", target="zh-TW")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-### --- 建立 10 歲版本摘要（中文） --- ###
-def explain_like_age_10_zh(full_text_zh):
+
+def explain_abstract_zh(abstract_en: str) -> str:
     """
-    將完整中文摘要改寫成 10 歲小朋友能懂的版本。
-    Rule-based：避免使用生成模型。
+    使用 OpenAI 將完整英文 abstract，改寫成一般人可以懂的中文解釋。
+    語氣：清楚、生活化、但保持科學精神，不要講幹話。
     """
+    prompt = f"""
+你是一位擅長用淺顯中文解釋醫學與營養研究的科普寫作者。
 
-    intro = "給 10 歲小朋友的解釋：\n"
+請閱讀下面這段英文學術摘要，然後用「一般成年讀者看得懂的繁體中文」做成解說：
 
-    # 把摘要切成句子
-    sentences = full_text_zh.replace("。", "。|").split("|")
-    short = sentences[:4]  # 只取前 4 句來簡化
+要求：
+1. 不要逐句翻譯，而是「用自己的話」整理重點。
+2. 請說明：
+   - 研究在「研究什麼」？（主題與對象）
+   - 大概「怎麼做」？（方法，用簡單一句話帶過即可）
+   - 找到「什麼結果」？
+   - 對一般人有什麼可能意義？（例如：對健康、疾病預防、飲食的啟示）
+3. 盡量用生活化的比喻，但不要亂許願或過度保證療效。
+4. 字數大約 150～250 字之間。
 
-    rewritten = []
-    for s in short:
-        s = s.strip()
-        if not s:
-            continue
+英文原文摘要如下：
+{abstract_en}
+"""
 
-        # 基本易懂替換
-        s = s.replace("細胞", "身體裡的小工人")
-        s = s.replace("退化", "變舊、變壞")
-        s = s.replace("老化", "變得累累、沒力氣")
-        s = s.replace("脂質", "油油的東西")
-        s = s.replace("累積", "堆積")
-        s = s.replace("炎症", "身體裡的紅腫不舒服")
-        s = s.replace("代謝", "身體處理東西的能力")
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.4,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"[OpenAI Error] {e}")
+        # 發生錯誤時，至少保留英文摘要
+        return f"（說明生成失敗，以下為原始英文摘要）\n{abstract_en}"
 
-        rewritten.append(s)
 
-    return intro + " ".join(rewritten)
-
-
-### --- PubMed Data Fetcher --- ###
 def fetch_pubmed_data():
+    """查詢 PubMed，取得最新 MAX_RESULTS 篇的標題與完整摘要（英文）。"""
     print(f"Searching PubMed for: '{SEARCH_TERM}'...")
 
-    # 搜尋 IDs
+    # 1. 搜尋 IDs（已依發表日期排序）
     try:
-        handle = Entrez.esearch(db="pubmed", term=SEARCH_TERM, retmax=MAX_RESULTS, sort="pub date")
+        handle = Entrez.esearch(
+            db="pubmed",
+            term=SEARCH_TERM,
+            retmax=MAX_RESULTS,
+            sort="pub date",
+        )
         record = Entrez.read(handle)
         id_list = record["IdList"]
         handle.close()
@@ -63,7 +77,7 @@ def fetch_pubmed_data():
         print("No articles found.")
         return []
 
-    # 取得詳細資訊
+    # 2. 取得詳細資訊（XML 格式）
     try:
         handle = Entrez.efetch(db="pubmed", id=id_list, retmode="xml")
         records = Entrez.read(handle)
@@ -79,23 +93,24 @@ def fetch_pubmed_data():
             medline_citation = article["MedlineCitation"]
             article_data = medline_citation["Article"]
 
-            pmid = medline_citation["PMID"]
+            pmid = str(medline_citation["PMID"])
             title_en = str(article_data["ArticleTitle"])
 
-            # --- 取得完整摘要英文 ---
+            # --- 摘要（英文，完整） ---
             abstract_list = article_data.get("Abstract", {}).get("AbstractText", [])
             if isinstance(abstract_list, list):
                 abstract_en = " ".join([str(t) for t in abstract_list])
             else:
                 abstract_en = str(abstract_list)
 
-            if not abstract_en:
+            if not abstract_en.strip():
+                # 沒有摘要就跳過
                 continue
 
-            # 出版日期
+            # --- 出版日期（簡化處理） ---
             pub_date_data = article_data["Journal"]["JournalIssue"]["PubDate"]
             year = pub_date_data.get("Year", "Unknown")
-            month = pub_date_data.get("Month", "Unknown")
+            month = pub_date_data.get("Month", pub_date_data.get("MedlineDate", "Unknown"))
             pub_date = f"{year}-{month}"
 
             papers.append({
@@ -107,51 +122,45 @@ def fetch_pubmed_data():
             })
 
         except Exception as e:
-            print(f"Skipping article due to parsing error: {e}")
+            print(f"Skipping one article due to parsing error: {e}")
             continue
 
+    print(f"Fetched {len(papers)} articles from PubMed.")
     return papers
 
 
-### --- Process + Translate --- ###
-def translate_to_zh(text):
-    try:
-        return translator.translate(text)
-    except:
-        return "（翻譯失敗）" + text
-
-
 def process_and_save_data(raw_data):
+    """對每篇論文呼叫 OpenAI 產生中文白話解釋，並存成 JSON。"""
     processed = []
-    seen = set()
+    seen_ids = set()
 
     for item in raw_data:
-        if item["id"] in seen:
+        if item["id"] in seen_ids:
             continue
-        seen.add(item["id"])
+        seen_ids.add(item["id"])
 
-        # 1️⃣ 完整摘要 → 中文
-        abstract_zh = translate_to_zh(item["abstract_en"])
-
-        # 2️⃣ 十歲版本摘要（中文）
-        abstract_zh_kid = explain_like_age_10_zh(abstract_zh)
+        abstract_en = item["abstract_en"]
+        explanation_zh = explain_abstract_zh(abstract_en)
 
         processed.append({
             "id": item["id"],
             "title_en": item["title_en"],
-            "abstract_zh_tw": abstract_zh,
-            "abstract_zh_tw_kid": abstract_zh_kid,
             "pub_date": item["pub_date"],
-            "pubmed_url": item["pubmed_url"]
+            "abstract_en": abstract_en,
+            "explanation_zh": explanation_zh,
+            "pubmed_url": item["pubmed_url"],
         })
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(processed, f, ensure_ascii=False, indent=2)
+    # 寫入 JSON
+    try:
+        os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+            json.dump(processed, f, ensure_ascii=False, indent=2)
+        print(f"Successfully processed and saved {len(processed)} items to {OUTPUT_FILE}")
+    except Exception as e:
+        print(f"Error saving data to file: {e}")
 
-    print(f"Successfully saved {len(processed)} records → {OUTPUT_FILE}")
 
-
-### --- main --- ###
 if __name__ == "__main__":
     raw = fetch_pubmed_data()
     if raw:
