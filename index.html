@@ -192,6 +192,352 @@
 
     .side-meta-list {
       margin: 8px 0 0;
-      padding-l
+      padding-left: 18px;
+    }
+
+    .side-meta-list li {
+      margin-bottom: 3px;
+    }
+
+    .papers-list {
+      margin-top: 8px;
+    }
+
+    .paper-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 16px 18px 14px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.04);
+      transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .paper-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 45px rgba(15, 23, 42, 0.08);
+      border-color: rgba(15, 118, 110, 0.4);
+    }
+
+    .paper-title {
+      font-size: 1.02rem;
+      font-weight: 600;
+      margin: 0 0 4px;
+      color: #0f172a;
+    }
+
+    .paper-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      align-items: center;
+      font-size: 0.82rem;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .meta-date {
+      white-space: nowrap;
+    }
+
+    .meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #047857;
+      font-size: 0.74rem;
+      border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+
+    .tag-pill.disease {
+      background: #eef2ff;
+      color: #3730a3;
+      border-color: rgba(129, 140, 248, 0.3);
+    }
+
+    .paper-body {
+      margin-top: 4px;
+      font-size: 0.92rem;
+      color: #111827;
+      line-height: 1.7;
+    }
+
+    .paper-body p {
+      margin: 0 0 0.65rem;
+    }
+
+    .paper-body p:last-child {
+      margin-bottom: 0.3rem;
+    }
+
+    .paper-links {
+      margin-top: 8px;
+      font-size: 0.86rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      align-items: center;
+    }
+
+    .paper-links a {
+      color: #0f766e;
+      text-decoration: none;
+    }
+
+    .paper-links a:hover {
+      text-decoration: underline;
+    }
+
+    .paper-count {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .empty-message {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 900px) {
+      header {
+        position: static;
+      }
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .layout-side {
+        position: static;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .paper-card {
+        padding: 14px 12px 12px;
+        border-radius: 14px;
+      }
+      .intro-title {
+        font-size: 1.2rem;
+      }
+      .filter-panel {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .filter-chip-hint {
+        margin-left: 0;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="site-title">
+        <h1>蘿蔔硫素研究資料庫</h1>
+        <span>Sulforaphane Research Explorer</span>
+      </div>
+      <nav class="header-nav">
+        <a href="index.html">研究列表</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h2 class="intro-title">最新蘿蔔硫素相關研究</h2>
+      <p class="intro-sub">
+        這個頁面整理 PubMed 上「標題包含 sulforaphane」的最新論文，並將英文摘要轉寫成一般人也看得懂的中文解說。
+        你可以用下方的「研究類型」勾選篩選，只看人類研究、動物研究、臨床試驗或特定疾病相關的研究。
+      </p>
+
+      <div class="filter-panel">
+        <div class="filter-label">篩選研究類型：</div>
+        <div class="filter-group">
+          <label class="filter-item">
+            <input type="checkbox" id="filter-human" />
+            <span>人類研究</span>
+          </label>
+          <label class="filter-item">
+            <input type="checkbox" id="filter-animal" />
+            <span>動物研究</span>
+          </label>
+          <label class="filter-item">
+            <input type="checkbox" id="filter-disease" />
+            <span>疾病相關研究</span>
+          </label>
+          <label class="filter-item">
+            <input type="checkbox" id="filter-clinical" />
+            <span>臨床試驗</span>
+          </label>
+        </div>
+        <div class="filter-chip-hint">
+          不勾選時會顯示所有研究
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="layout-main">
+        <div class="paper-count" id="paper-count"></div>
+        <section id="papers" class="papers-list"></section>
+        <div id="empty-message" class="empty-message" style="display: none;">
+          目前沒有符合這個篩選條件的研究。
+        </div>
+      </div>
+
+      <aside class="layout-side">
+        <article class="side-card">
+          <h3>如何閱讀這些研究？</h3>
+          <p>
+            每一篇卡片都先用中文整理了論文的健康啟示、研究主題、實驗做法與主要發現。
+            如果你想更深入了解，可以點開「前往 PubMed 原文」閱讀原始論文。
+          </p>
+          <ul class="side-meta-list">
+            <li><strong>人類研究：</strong> 直接在人體身上進行的試驗或觀察。</li>
+            <li><strong>動物研究：</strong> 以小鼠、大鼠等動物作為實驗對象。</li>
+            <li><strong>疾病相關：</strong> 針對特定疾病（例如癌症、代謝疾病等）。</li>
+            <li><strong>臨床試驗：</strong> 具有較完整設計的人體試驗。</li>
+          </ul>
+          <p style="margin-top: 8px;">
+            想把某篇研究轉成社群素材，可以點卡片下方的「創造 FB 貼文」，
+            在新頁面會看到改寫好的貼文文字，以及一段產圖用的英文 Prompt。
+          </p>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    let allPapers = [];
+
+    function splitExplanation(explanation) {
+      if (!explanation) return [];
+      return explanation
+        .split(/\n{2,}/)
+        .map(p => p.trim())
+        .filter(Boolean);
+    }
+
+    function renderPapers() {
+      const container = document.getElementById('papers');
+      const countEl = document.getElementById('paper-count');
+      const emptyEl = document.getElementById('empty-message');
+
+      const humanChecked = document.getElementById('filter-human').checked;
+      const animalChecked = document.getElementById('filter-animal').checked;
+      const diseaseChecked = document.getElementById('filter-disease').checked;
+      const clinicalChecked = document.getElementById('filter-clinical').checked;
+
+      const hasFilter =
+        humanChecked || animalChecked || diseaseChecked || clinicalChecked;
+
+      const filtered = allPapers.filter(item => {
+        if (!hasFilter) return true;
+        let ok = false;
+        if (humanChecked && item.is_human_study) ok = true;
+        if (animalChecked && item.is_animal_study) ok = true;
+        if (diseaseChecked && item.is_disease_related) ok = true;
+        if (clinicalChecked && item.is_clinical_trial) ok = true;
+        return ok;
+      });
+
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        emptyEl.style.display = 'block';
+        countEl.textContent = '';
+        return;
+      } else {
+        emptyEl.style.display = 'none';
+      }
+
+      countEl.textContent = `目前顯示 ${filtered.length} 篇研究（總數：${allPapers.length} 篇）`;
+
+      filtered.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'paper-card';
+
+        const tags = [];
+        if (item.is_human_study) tags.push('<span class="tag-pill">人類研究</span>');
+        if (item.is_animal_study) tags.push('<span class="tag-pill">動物研究</span>');
+        if (item.is_clinical_trial) tags.push('<span class="tag-pill">臨床試驗</span>');
+        if (item.is_disease_related && item.disease_name) {
+          tags.push(`<span class="tag-pill disease">${item.disease_name}</span>`);
+        }
+
+        const paragraphs = splitExplanation(item.explanation_zh);
+        const explanationHtml = paragraphs
+          .map(p => `<p>${p}</p>`)
+          .join('');
+
+        card.innerHTML = `
+          <h2 class="paper-title">${item.title_en || ''}</h2>
+          <div class="paper-meta">
+            <span class="meta-date">${item.pub_date || ''}</span>
+            ${
+              tags.length
+                ? `<span>·</span><div class="meta-tags">${tags.join('')}</div>`
+                : ''
+            }
+          </div>
+          <div class="paper-body">
+            ${explanationHtml}
+          </div>
+          <div class="paper-links">
+            <a href="${item.pubmed_url}" target="_blank" rel="noopener noreferrer">
+              前往 PubMed 原文
+            </a>
+            <a href="fb.html?id=${encodeURIComponent(item.id)}" target="_blank" rel="noopener noreferrer">
+              創造 FB 貼文
+            </a>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    async function loadData() {
+      try {
+        console.log('[Sulforaphane] loadData start');
+        const res = await fetch('data/research.json');
+        console.log('[Sulforaphane] fetch status', res.status);
+        const data = await res.json();
+        console.log('[Sulforaphane] loaded items', Array.isArray(data) ? data.length : 'not array');
+        allPapers = Array.isArray(data) ? data : [];
+        renderPapers();
+      } catch (err) {
+        console.error('Error loading research.json', err);
+        const container = document.getElementById('papers');
+        container.innerHTML = '<p>載入資料時發生錯誤，稍後再試一次。</p>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ['filter-human', 'filter-animal', 'filter-disease', 'filter-clinical']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener('change', renderPapers);
+          }
+        });
+
+      loadData();
+    });
+  </script>
+</body>
+</html>
+
 
 
