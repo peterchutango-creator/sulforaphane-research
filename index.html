@@ -6,87 +6,286 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    :root {
+      --bg-body: #f5f5f7;
+      --bg-card: #ffffff;
+      --bg-chip: #e0f2f1;
+      --bg-explain: #fff9e5;
+      --bg-abstract: #f9fafb;
+      --border-explain: #f59e0b;
+      --border-abstract: #0f766e;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+      --text-main: #111827;
+      --text-sub: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
-      background: #f4f4f4;
+      background: radial-gradient(circle at top left, #ecfeff 0, #f5f5f7 45%, #f5f5f7 100%);
+      color: var(--text-main);
       padding-bottom: 40px;
     }
 
     header {
-      background: #0f766e;
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
       color: white;
-      padding: 20px;
+      padding: 32px 16px 28px;
       text-align: center;
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.3);
     }
 
-    h1 {
+    header h1 {
       margin: 0;
-      font-size: 26px;
+      font-size: 28px;
+      letter-spacing: 0.04em;
     }
 
     header p {
-      margin: 6px 0 0;
+      margin: 10px auto 0;
       font-size: 14px;
-      opacity: 0.9;
+      opacity: 0.95;
+      max-width: 680px;
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 18px 16px 40px;
+    }
+
+    .search-panel {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      padding: 16px 18px 14px;
+      margin: -26px auto 18px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+    }
+
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
     }
 
     #searchBox {
-      width: 80%;
-      max-width: 500px;
-      display: block;
-      margin: 20px auto;
-      padding: 10px 12px;
-      font-size: 15px;
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 12px 10px 34px;
+      font-size: 14px;
       border-radius: 999px;
-      border: 1px solid #ccc;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid #d1d5db;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
       outline: none;
+      background: #f9fafb;
+      position: relative;
     }
 
     #searchBox:focus {
-      border-color: #0f766e;
-      box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.4);
+      background: #ffffff;
     }
 
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--text-sub);
+      pointer-events: none;
+    }
+
+    .search-hint {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .tags-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #e5e7eb;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #4b5563;
+      margin-right: 4px;
+      padding-top: 6px;
+    }
+
+    .filter-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #374151;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 999px;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+    }
+
+    .filter-item input {
+      cursor: pointer;
+    }
+
+    .filter-item:hover {
+      background: #f3f4f6;
+      box-shadow: 0 1px 4px rgba(148, 163, 184, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .filter-pill-human   { background: #dcfce7; }
+    .filter-pill-animal  { background: #fee2e2; }
+    .filter-pill-disease { background: #e0e7ff; }
+    .filter-pill-clinical{ background: #fef3c7; }
+    .filter-pill-nutri   { background: #e0f2fe; }
+
     #results {
-      max-width: 960px;
-      margin: 0 auto;
+      margin-top: 10px;
     }
 
     .paper-card {
-      background: white;
-      margin: 16px 12px;
+      background: var(--bg-card);
+      margin: 18px 4px;
       padding: 18px 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      border: 1px solid rgba(209, 213, 219, 0.7);
+      transition: box-shadow 0.18s ease, transform 0.08s ease, border-color 0.18s ease;
+    }
+
+    .paper-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(59, 130, 246, 0.35);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
     }
 
     .paper-card h2 {
-      margin: 0 0 6px;
+      margin: 0 0 4px;
       font-size: 18px;
+      line-height: 1.35;
     }
 
-    .pub-date {
-      color: #555;
-      font-size: 13px;
+    .pub-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 6px;
     }
 
+    .pub-date {
+      color: var(--text-sub);
+      font-size: 13px;
+    }
+
     .tags-row {
-      margin: 4px 0 10px;
+      margin: 4px 0 12px;
       font-size: 13px;
       color: #1f2933;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
     }
 
     .tag-pill {
-      display: inline-block;
-      background: #e0f2f1;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-chip);
       color: #065f46;
       padding: 3px 10px;
       border-radius: 999px;
-      margin-right: 6px;
+      font-size: 12px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .tag-pill.disease {
+      background: #eef2ff;
+      color: #3730a3;
+      border-color: rgba(129, 140, 248, 0.5);
+    }
+
+    .tag-pill.clinical {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: rgba(251, 191, 36, 0.5);
+    }
+
+    .tag-pill.nutrition {
+      background: #e0f2fe;
+      color: #1d4ed8;
+      border-color: rgba(59, 130, 246, 0.45);
+    }
+
+    .tag-pill.empty {
+      background: #f3f4f6;
+      color: #6b7280;
+      border-color: transparent;
+    }
+
+    .label-chip {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #e5e7eb;
+      color: #4b5563;
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+
+    .explain-box,
+    .abstract-box {
+      margin-top: 8px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* 中文解說：預設展開 */
+    .explain-box {
+      background: var(--bg-explain);
+      border-left: 4px solid var(--border-explain);
+    }
+
+    /* 英文摘要：預設收合，由 JS 控制 */
+    .abstract-box {
+      background: var(--bg-abstract);
+      border-left: 4px solid var(--border-abstract);
+      display: none;
+    }
+
+    .box-title {
+      font-weight: 600;
+      font-size: 13px;
       margin-bottom: 4px;
+      color: #374151;
     }
 
     .buttons-row {
@@ -95,7 +294,7 @@
     }
 
     .toggle-btn {
-      background: #0f766e;
+      background: var(--accent);
       color: white;
       padding: 6px 10px;
       border: none;
@@ -103,41 +302,39 @@
       cursor: pointer;
       margin-right: 8px;
       font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(15, 118, 110, 0.4);
+      transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
     }
 
     .toggle-btn:hover {
-      opacity: 0.9;
+      background: #115e59;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.55);
     }
 
-    .abstract-box,
-    .explain-box {
-      margin-top: 8px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      white-space: pre-wrap;
+    .toggle-btn span.icon {
       font-size: 14px;
-      line-height: 1.5;
-    }
-
-    /* 中文解說：預設展開 */
-    .explain-box {
-      background: #fff9e5;
-      border-left: 4px solid #f59e0b;
-    }
-
-    /* 英文摘要：預設收合，由 JS 控制 */
-    .abstract-box {
-      background: #f9fafb;
-      border-left: 4px solid #0f766e;
-      display: none;
     }
 
     .pubmed-link {
       margin-top: 10px;
-      display: inline-block;
-      color: #0f766e;
-      text-decoration: underline;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent);
+      text-decoration: none;
       font-weight: 500;
+      font-size: 14px;
+    }
+
+    .pubmed-link:hover {
+      text-decoration: underline;
+    }
+
+    .pubmed-link span.icon {
       font-size: 14px;
     }
 
@@ -148,14 +345,33 @@
       font-size: 15px;
     }
 
-    @media (max-width: 600px) {
-      .paper-card {
-        margin: 12px 8px;
-        padding: 16px;
+    .results-meta {
+      margin: 8px 4px 0;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    @media (max-width: 720px) {
+      header h1 {
+        font-size: 22px;
       }
 
-      h1 {
-        font-size: 22px;
+      header p {
+        font-size: 13px;
+      }
+
+      .page {
+        padding: 12px 12px 32px;
+      }
+
+      .search-panel {
+        padding: 14px 12px 12px;
+        margin: -24px 6px 14px;
+      }
+
+      .paper-card {
+        margin: 14px 0;
+        padding: 16px 14px;
       }
     }
   </style>
@@ -165,16 +381,67 @@
 
 <header>
   <h1>蘿蔔硫素研究資料庫</h1>
-  <p>PubMed 最新 30 篇蘿蔔硫素相關研究</p>
+  <p>
+    這裡整理了 PubMed 上「標題含 Sulforaphane」的最新研究。<br />
+    每一篇都有：中文白話解說、研究類型標籤（人類 / 動物 / 疾病 / 臨床試驗）、以及原始英文摘要。
+  </p>
 </header>
 
-<input id="searchBox" type="text" placeholder="搜尋研究（標題 / 英文摘要 / 中文解說，支援中英文）..." />
+<div class="page">
+  <section class="search-panel">
+    <div class="search-row">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input id="searchBox"
+               type="text"
+               placeholder="輸入關鍵字搜尋（標題 / 英文摘要 / 中文解說，支援中英文）..." />
+      </div>
+      <div class="search-hint">
+        提示：可以輸入 <strong>cancer</strong>、<strong>肺</strong>、<strong>抗氧化</strong> 等關鍵字。
+      </div>
+    </div>
 
-<div id="results"></div>
+    <div class="tags-filter">
+      <span class="filter-label">篩選研究類型：</span>
+
+      <label class="filter-item filter-pill-human">
+        <input type="checkbox" id="filterHuman" />
+        🧑‍⚕️ 人類研究
+      </label>
+
+      <label class="filter-item filter-pill-animal">
+        <input type="checkbox" id="filterAnimal" />
+        🐁 動物研究
+      </label>
+
+      <label class="filter-item filter-pill-disease">
+        <input type="checkbox" id="filterDisease" />
+        🦠 疾病相關研究
+      </label>
+
+      <label class="filter-item filter-pill-clinical">
+        <input type="checkbox" id="filterClinical" />
+        🧪 Clinical trial
+      </label>
+
+
+    </div>
+  </section>
+
+  <div id="resultsMeta" class="results-meta"></div>
+  <div id="results"></div>
+</div>
 
 <script>
   const DATA_URL = "./data/research.json";
   let papers = [];
+  let currentQuery = "";
+  const filters = {
+    human: false,
+    animal: false,
+    disease: false,
+    clinical: false,
+  };
 
   async function loadData() {
     const container = document.getElementById("results");
@@ -188,35 +455,96 @@
 
       if (!Array.isArray(papers) || papers.length === 0) {
         container.innerHTML = '<p class="empty-message">目前沒有找到任何研究資料。</p>';
+        document.getElementById("resultsMeta").textContent = "";
         return;
       }
 
-      render(papers);
+      applyFiltersAndRender();
     } catch (err) {
       console.error("載入 research.json 失敗：", err);
       container.innerHTML = '<p class="empty-message">無法讀取資料。請確認 data/research.json 是否存在，或稍後再試。</p>';
+      document.getElementById("resultsMeta").textContent = "";
     }
   }
 
   function buildTags(p) {
     const tags = [];
 
-    if (p.is_human_study) tags.push("人類研究");
-    if (p.is_animal_study) tags.push("動物研究");
+    if (p.is_human_study) tags.push({ text: "人類研究", type: "human" });
+    if (p.is_animal_study) tags.push({ text: "動物研究", type: "animal" });
 
     if (p.is_disease_related) {
       const d = (p.disease_name || "").trim();
       if (d) {
-        tags.push("疾病相關：" + d);
+        tags.push({ text: "疾病：" + d, type: "disease" });
       } else {
-        tags.push("疾病相關研究");
+        tags.push({ text: "疾病相關研究", type: "disease" });
       }
     }
 
-    if (p.is_clinical_trial) tags.push("clinical trial");
-    if (p.is_nutrition_metabolism) tags.push("nutrition / metabolism");
+    if (p.is_clinical_trial) tags.push({ text: "clinical trial", type: "clinical" });
+    if (p.is_nutrition_metabolism) tags.push({ text: "nutrition / metabolism", type: "nutrition" });
 
     return tags;
+  }
+
+  function applyFiltersAndRender() {
+    const q = currentQuery.toLowerCase().trim();
+    const anyTagSelected = Object.values(filters).some(Boolean);
+
+    const filtered = papers.filter(p => {
+      // 文字搜尋
+      const title = (p.title_en || "").toLowerCase();
+      const abs = (p.abstract_en || "").toLowerCase();
+      const explZh = (p.explanation_zh || "").toLowerCase();
+      const matchesText = !q || title.includes(q) || abs.includes(q) || explZh.includes(q);
+      if (!matchesText) return false;
+
+      // Tag 過濾：OR 邏輯，只要符合任一勾選標籤即可
+      if (!anyTagSelected) return true;
+
+      let tagMatch = false;
+      if (filters.human && p.is_human_study) tagMatch = true;
+      if (filters.animal && p.is_animal_study) tagMatch = true;
+      if (filters.disease && p.is_disease_related) tagMatch = true;
+      if (filters.clinical && p.is_clinical_trial) tagMatch = true;
+
+      return tagMatch;
+    });
+
+    render(filtered);
+    updateMeta(filtered.length);
+  }
+
+  function updateMeta(count) {
+    const meta = document.getElementById("resultsMeta");
+    if (!papers || papers.length === 0) {
+      meta.textContent = "";
+      return;
+    }
+
+    const total = papers.length;
+    const q = currentQuery.trim();
+    const anyTagSelected = Object.values(filters).some(Boolean);
+
+    let parts = [];
+    parts.push(`共 ${total} 篇論文`);
+
+    if (q) {
+      parts.push(`，關鍵字「${q}」`);
+    }
+    if (anyTagSelected) {
+      let selectedTagNames = [];
+      if (filters.human) selectedTagNames.push("人類研究");
+      if (filters.animal) selectedTagNames.push("動物研究");
+      if (filters.disease) selectedTagNames.push("疾病相關");
+      if (filters.clinical) selectedTagNames.push("clinical trial");
+      parts.push(`，已套用標籤篩選（${selectedTagNames.join("、")}）`);
+    }
+
+    parts.push(` → 顯示 ${count} 篇`);
+
+    meta.textContent = parts.join("");
   }
 
   function render(list) {
@@ -224,7 +552,7 @@
     container.innerHTML = "";
 
     if (!list || list.length === 0) {
-      container.innerHTML = '<p class="empty-message">找不到符合搜尋條件的研究。</p>';
+      container.innerHTML = '<p class="empty-message">找不到符合搜尋與篩選條件的研究。</p>';
       return;
     }
 
@@ -237,12 +565,24 @@
 
       const tags = buildTags(p);
       const tagsHtml = tags.length
-        ? tags.map(t => `<span class="tag-pill">${t}</span>`).join("")
-        : '<span style="font-size:13px;color:#6b7280;">尚未標註類別</span>';
+        ? tags.map(t => {
+            let extraClass = "";
+            if (t.type === "disease") extraClass = " disease";
+            if (t.type === "clinical") extraClass = " clinical";
+            if (t.type === "nutrition") extraClass = " nutrition";
+            return `<span class="tag-pill${extraClass}">${t.text}</span>`;
+          }).join("")
+        : '<span class="tag-pill empty">尚未標註類別</span>';
 
       card.innerHTML = `
-        <h2>${p.title_en || "(No title)"}</h2>
-        <div class="pub-date">📅 發布日期：${p.pub_date || "Unknown"}</div>
+        <div class="pub-meta-row">
+          <div>
+            <h2>${p.title_en || "(No title)"}</h2>
+          </div>
+          <div class="pub-date">
+            發布日期：${p.pub_date || "Unknown"}
+          </div>
+        </div>
 
         <div class="tags-row">
           ${tagsHtml}
@@ -250,23 +590,27 @@
 
         <!-- 中文白話解說：預設展開 -->
         <div class="explain-box">
-          <strong>中文白話解說：</strong><br>
+          <div class="box-title">中文解說</div>
           ${p.explanation_zh || "尚無中文解說。"}
         </div>
 
         <!-- 英文摘要：用按鈕收合 -->
         <div class="buttons-row">
           <button class="toggle-btn" onclick="toggleBox('${absId}')">
-            📖 展開 / 收合 英文摘要
+            <span class="icon">📖</span>
+            <span>英文摘要</span>
           </button>
         </div>
 
         <div id="${absId}" class="abstract-box">
-          <strong>英文摘要：</strong><br>
+          <div class="box-title">英文摘要</div>
           ${p.abstract_en || "No abstract available."}
         </div>
 
-        <a href="${p.pubmed_url || "#"}" target="_blank" class="pubmed-link">前往 PubMed 原文</a>
+        <a href="${p.pubmed_url || "#"}" target="_blank" class="pubmed-link">
+          <span class="icon">↗</span>
+          <span>前往 PubMed 原文</span>
+        </a>
       `;
 
       container.appendChild(card);
@@ -280,21 +624,35 @@
       box.style.display === "none" || box.style.display === "" ? "block" : "none";
   }
 
+  // 綁定搜尋框 & checkbox 事件
   document.getElementById("searchBox").addEventListener("input", function () {
-    const q = this.value.toLowerCase().trim();
-    if (!q) {
-      render(papers);
-      return;
-    }
+    currentQuery = this.value;
+    applyFiltersAndRender();
+  });
 
-    const filtered = papers.filter(p => {
-      const title = (p.title_en || "").toLowerCase();
-      const abs = (p.abstract_en || "").toLowerCase();
-      const explZh = (p.explanation_zh || "").toLowerCase();
-      return title.includes(q) || abs.includes(q) || explZh.includes(q);
-    });
+  document.getElementById("filterHuman").addEventListener("change", function () {
+    filters.human = this.checked;
+    applyFiltersAndRender();
+  });
 
-    render(filtered);
+  document.getElementById("filterAnimal").addEventListener("change", function () {
+    filters.animal = this.checked;
+    applyFiltersAndRender();
+  });
+
+  document.getElementById("filterDisease").addEventListener("change", function () {
+    filters.disease = this.checked;
+    applyFiltersAndRender();
+  });
+
+  document.getElementById("filterClinical").addEventListener("change", function () {
+    filters.clinical = this.checked;
+    applyFiltersAndRender();
+  });
+
+  document.getElementById("filterNutrition").addEventListener("change", function () {
+    filters.nutrition = this.checked;
+    applyFiltersAndRender();
   });
 
   loadData();
@@ -302,5 +660,6 @@
 
 </body>
 </html>
+
 
 
