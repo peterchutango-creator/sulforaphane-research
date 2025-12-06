@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>蘿蔔硫素研究資料庫｜Sulforaphane Research Explorer</title>
+  <title>蘿蔔硫素研究資料庫 Sulforaphane Research Explorer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
