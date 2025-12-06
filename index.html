@@ -202,7 +202,7 @@
     .paper-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px 12px;
+      gap: 8px 10px;
       align-items: center;
       font-size: 0.82rem;
       color: #6b7280;
@@ -218,6 +218,10 @@
       flex-wrap: wrap;
       gap: 4px;
       align-items: center;
+    }
+
+    .meta-source {
+      white-space: nowrap;
     }
 
     .tag-pill {
@@ -302,6 +306,9 @@
         <h1>蘿蔔硫素研究資料庫</h1>
         <span>Sulforaphane Research Explorer</span>
       </div>
+      <nav class="header-nav">
+        <a href="index.html">研究列表</a>
+      </nav>
     </div>
   </header>
 
@@ -309,7 +316,8 @@
     <section class="intro">
       <h2 class="intro-title">最新蘿蔔硫素相關研究</h2>
       <p class="intro-sub">
-        這個頁面整理 PubMed 上「標題包含 sulforaphane」的最新論文
+        這個頁面整理 PubMed 上「標題包含 sulforaphane」的最新論文，並將英文摘要轉寫成一般人也看得懂的中文解說。
+        你可以用下方的「研究類型」勾選篩選，只看人類研究、動物研究、臨床試驗或特定疾病相關的研究。
       </p>
 
       <div class="filter-panel">
@@ -407,6 +415,8 @@
           tags.push(`<span class="tag-pill disease">${item.disease_name}</span>`);
         }
 
+        const source = item.journal || '';
+
         const paragraphs = splitExplanation(item.explanation_zh);
         const explanationHtml = paragraphs
           .map(p => `<p>${p}</p>`)
@@ -419,6 +429,11 @@
             ${
               tags.length
                 ? `<span>·</span><div class="meta-tags">${tags.join('')}</div>`
+                : ''
+            }
+            ${
+              source
+                ? `<span>·</span><span class="meta-source">論文出處：${source}</span>`
                 : ''
             }
           </div>
@@ -466,5 +481,6 @@
   </script>
 </body>
 </html>
+
 
 
