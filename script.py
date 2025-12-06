@@ -21,8 +21,8 @@ client = OpenAI(api_key=api_key) if api_key else None
 def analyze_abstract(abstract_en: str) -> dict:
     """
     使用 OpenAI：
-    1. 產出「一般人看得懂的中文解說」
-    2. 幫論文貼標籤（人類 / 動物 / 疾病 / clinical trial / nutrition-metabolism）
+    1. 產出「大人小孩看得懂的中文解說」
+    2. 幫論文貼標籤（人類 / 動物 / 疾病 / clinical trial）
        並註明疾病名稱（如果有）
     回傳一個 dict。
     """
@@ -34,18 +34,17 @@ def analyze_abstract(abstract_en: str) -> dict:
             "is_animal_study": False,
             "is_disease_related": False,
             "disease_name": "",
-            "is_clinical_trial": False,
-            "is_nutrition_metabolism": False,
+            "is_clinical_trial": False
         }
 
     prompt = f"""
 你是一位專業的醫學與營養科普寫作者與文獻分析師。
 
 請閱讀下列英文摘要，然後完成兩件事：
-1. 用「大人小孩都看得懂的繁體中文」寫一段白話解說。
+1. 用「大人小孩都看得懂的繁體中文」寫一段白話解說。字數在 400 到 500 字。
    - 不要逐句翻譯，而是用自己的話整理重點。
    - sulforaphane 翻譯成「蘿蔔硫素」
-   - 文字分成四段落，用 Bulletpoint: 對健康或疾病預防可能的啟示，研究主題、實驗是怎麼做、主要發現和結果。
+   - 文字分成四段落：第一段「對健康或疾病預防可能的啟示」，第二段「研究主題」、第三段「實驗是怎麼做」、第四段「主要發現和結果」。
    - 不要過度誇大療效、不要下結論說「一定可以治癒」。
 
 2. 根據摘要內容，判斷這篇研究屬於哪些類別（可複選）：
@@ -53,12 +52,11 @@ def analyze_abstract(abstract_en: str) -> dict:
    - 動物研究（animal study）
    - 疾病相關研究（disease-related study）
    - clinical trial（臨床試驗）
-   - nutrition / metabolism（營養 / 代謝相關）
 
-如果是「疾病相關研究」，請另外註明主要研究的疾病名稱，例如：
-   - "breast cancer"
-   - "Alzheimer's disease"
-   - "type 2 diabetes"
+如果是「疾病相關研究」，請另外註明主要研究的疾病中文名稱，例如：
+   - "乳癌"
+   - "阿茲罕默症"
+   - "高血壓"
 如果沒有明確疾病，就用空字串 ""。
 
 ⚠ 非常重要：
@@ -72,7 +70,6 @@ JSON 格式必須長這樣（布林請用 true/false，小寫）：
   "is_disease_related": true 或 false,
   "disease_name": "如果有具體疾病名稱，寫在這裡，否則用空字串",
   "is_clinical_trial": true 或 false,
-  "is_nutrition_metabolism": true 或 false
 }}
 
 請務必確保：
