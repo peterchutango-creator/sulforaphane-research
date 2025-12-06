@@ -41,6 +41,55 @@ def clean_json_str(content: str) -> str:
     return text
 
 
+def to_zh_year_month(pub_date: str) -> str:
+    """
+    將類似 '2025 Sep' / '2025 January' / '2025' 轉成
+    '2025 年 9 月' / '2025 年 1 月' / '2025 年'。
+    如果看不懂，就原樣回傳。
+    """
+    if not pub_date:
+        return ""
+
+    tokens = pub_date.split()
+    year = ""
+    month = ""
+
+    if len(tokens) >= 2 and tokens[0].isdigit():
+        year = tokens[0]
+        month_raw = tokens[1]
+    elif len(tokens) == 1 and tokens[0].isdigit():
+        year = tokens[0]
+        month_raw = ""
+    else:
+        # 無法解析，直接原樣回傳
+        return pub_date
+
+    month_map = {
+        "Jan": "1", "January": "1",
+        "Feb": "2", "February": "2",
+        "Mar": "3", "March": "3",
+        "Apr": "4", "April": "4",
+        "May": "5",
+        "Jun": "6", "June": "6",
+        "Jul": "7", "July": "7",
+        "Aug": "8", "August": "8",
+        "Sep": "9", "Sept": "9", "September": "9",
+        "Oct": "10", "October": "10",
+        "Nov": "11", "November": "11",
+        "Dec": "12", "December": "12",
+    }
+
+    month_num = ""
+    if len(tokens) >= 2:
+        month_num = month_map.get(tokens[1], "")
+
+    if year and month_num:
+        return f"{year} 年 {month_num} 月"
+    if year:
+        return f"{year} 年"
+    return pub_date
+
+
 # --- OpenAI：解析摘要成四段中文 + 類別標記 -----------------------------
 
 def analyze_abstract(abstract_en: str) -> Dict[str, Any]:
@@ -168,6 +217,7 @@ def generate_social_content(para1: str, para2: str, para3: str, para4: str) -> D
                 "Use soft colors, white or light background, clear arrows to show the flow of the experiment, "
                 "and a small area highlighting the key outcome (for example, better protection, reduced inflammation, "
                 "or improved cellular response). Avoid complex chemical structures or realistic medical photos."
+                "翻成繁體中文，字要夠大方便閱讀“
             )
         }
 
@@ -320,11 +370,15 @@ def fetch_pubmed_data() -> List[Dict[str, Any]]:
             else:
                 pub_date = "Unknown"
 
+            # --- 期刊名稱（論文出處） ---
+            journal_title = str(article_data.get("Journal", {}).get("Title", "")).strip()
+
             papers.append({
                 "id": pmid,
                 "title_en": title_en,
                 "abstract_en": abstract_en,
                 "pub_date": pub_date,
+                "journal": journal_title,
                 "pubmed_url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
             })
 
@@ -346,7 +400,7 @@ def process_and_save_data(raw_data: List[Dict[str, Any]]) -> None:
     對每篇論文呼叫 OpenAI：
     - 產生四段中文白話解說（para1~para4）
     - 組合 explanation_zh（給原本頁面用）
-    - 產生 FB 貼文（fb_post）
+    - 產生 FB 貼文（fb_post），並在開頭加上「根據XXX於XX年XX月發表的論文，」
     - 產生圖片 prompt（image_prompt）
     - 標記類別與疾病名稱
     最後寫入 JSON。
@@ -370,21 +424,40 @@ def process_and_save_data(raw_data: List[Dict[str, Any]]) -> None:
         explanation_parts = [p for p in [para1, para2, para3, para4] if p]
         explanation_zh = "\n\n".join(explanation_parts)
 
-        # 根據 para1~para4 產 FB 貼文 + 圖片 prompt
+        # 根據 para1~para4 產 FB 貼文 + 圖片 prompt（原始內容）
         social = generate_social_content(para1, para2, para3, para4)
+        fb_post_raw = social.get("fb_post", "") or ""
+        image_prompt = social.get("image_prompt", "") or ""
+
+        # 論文出處 + 日期，組成 FB 前綴
+        journal = item.get("journal", "").strip()
+        pub_date = item.get("pub_date", "").strip()
+        date_phrase = to_zh_year_month(pub_date)
+
+        if journal and date_phrase:
+            prefix = f"根據《{journal}》於 {date_phrase} 發表的論文，"
+        elif date_phrase:
+            prefix = f"根據於 {date_phrase} 發表的論文，"
+        elif journal:
+            prefix = f"根據發表於《{journal}》的論文，"
+        else:
+            prefix = "根據這篇蘿蔔硫素研究論文，"
+
+        fb_post = prefix + fb_post_raw.lstrip()
 
         processed.append({
             "id": item["id"],
             "title_en": item["title_en"],
-            "pub_date": item["pub_date"],
+            "pub_date": pub_date,
+            "journal": journal,
             "abstract_en": abstract_en,
             "para1": para1,
             "para2": para2,
             "para3": para3,
             "para4": para4,
             "explanation_zh": explanation_zh,
-            "fb_post": social.get("fb_post", ""),
-            "image_prompt": social.get("image_prompt", ""),
+            "fb_post": fb_post,
+            "image_prompt": image_prompt,
             "is_human_study": analysis.get("is_human_study", False),
             "is_animal_study": analysis.get("is_animal_study", False),
             "is_disease_related": analysis.get("is_disease_related", False),
@@ -409,3 +482,4 @@ if __name__ == "__main__":
     raw = fetch_pubmed_data()
     if raw:
         process_and_save_data(raw)
+
