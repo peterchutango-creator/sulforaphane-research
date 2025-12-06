@@ -154,10 +154,9 @@
       text-align: right;
     }
 
+    /* 單欄全寬 layout */
     .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.1fr);
-      gap: 20px;
+      display: block;
       margin-top: 20px;
     }
 
@@ -165,42 +164,15 @@
       min-width: 0;
     }
 
-    .layout-side {
-      min-width: 0;
-      position: sticky;
-      top: 88px;
-      align-self: flex-start;
-    }
-
-    .side-card {
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 14px 14px 12px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
-      font-size: 0.86rem;
-      color: #374151;
-      line-height: 1.6;
-    }
-
-    .side-card h3 {
-      margin: 0 0 6px;
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: #0f172a;
-    }
-
-    .side-meta-list {
-      margin: 8px 0 0;
-      padding-left: 18px;
-    }
-
-    .side-meta-list li {
-      margin-bottom: 3px;
-    }
-
     .papers-list {
       margin-top: 8px;
+    }
+
+    .paper-count {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 4px;
+      margin-bottom: 4px;
     }
 
     .paper-card {
@@ -211,6 +183,7 @@
       border: 1px solid rgba(148, 163, 184, 0.5);
       box-shadow: 0 18px 40px rgba(15, 23, 42, 0.04);
       transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+      width: 100%;
     }
 
     .paper-card:hover {
@@ -297,28 +270,10 @@
       text-decoration: underline;
     }
 
-    .paper-count {
-      font-size: 0.8rem;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-
     .empty-message {
       font-size: 0.9rem;
       color: #6b7280;
       margin-top: 16px;
-    }
-
-    @media (max-width: 900px) {
-      header {
-        position: static;
-      }
-      .layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .layout-side {
-        position: static;
-      }
     }
 
     @media (max-width: 600px) {
@@ -347,9 +302,6 @@
         <h1>蘿蔔硫素研究資料庫</h1>
         <span>Sulforaphane Research Explorer</span>
       </div>
-      <nav class="header-nav">
-        <a href="index.html">研究列表</a>
-      </nav>
     </div>
   </header>
 
@@ -357,7 +309,7 @@
     <section class="intro">
       <h2 class="intro-title">最新蘿蔔硫素相關研究</h2>
       <p class="intro-sub">
-        這個頁面整理 PubMed 上「標題包含 sulforaphane」的最新論文。
+        這個頁面整理 PubMed 上「標題包含 sulforaphane」的最新論文
       </p>
 
       <div class="filter-panel">
@@ -394,8 +346,6 @@
           目前沒有符合這個篩選條件的研究。
         </div>
       </div>
-
-
     </section>
   </main>
 
@@ -491,11 +441,8 @@
 
     async function loadData() {
       try {
-        console.log('[Sulforaphane] loadData start');
         const res = await fetch('data/research.json');
-        console.log('[Sulforaphane] fetch status', res.status);
         const data = await res.json();
-        console.log('[Sulforaphane] loaded items', Array.isArray(data) ? data.length : 'not array');
         allPapers = Array.isArray(data) ? data : [];
         renderPapers();
       } catch (err) {
@@ -519,6 +466,5 @@
   </script>
 </body>
 </html>
-
 
 
